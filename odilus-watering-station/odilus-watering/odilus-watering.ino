@@ -2,25 +2,25 @@
 /////////////////////////PERAN.DEV/////////////////////////
 //////////////MOISTURE & TIME SETTINGS/////////////////////
 //MOISTURE - HUMIDITE                    ////A5 - MOISTURE/
-float moistSet = 70; //WAS CONST FLOAT///////////////////
-const int PinMoisture = A5;                            //
-const int Dry = 596;  //CALIBRATION
-const int Wet = 251;  //CALIBRATION
+float moistSet = 70;         //WAS CONST FLOAT///////////////////
+const int PinMoisture = A5;  //
+const int Dry = 596;         //CALIBRATION
+const int Wet = 251;         //CALIBRATION
 int soilRawValue = 0;
-int soilMoisture = 0;                                  //
+int soilMoisture = 0;  //
 
 //TIME MANAGEMENT//                         //////TIME/////
 unsigned long previousTime = 0;
-                                            ////INTERVAL///
+////INTERVAL///
 long pumpInterval;
 long pumpIntervalMs;
-                                           //PUMP DURATION//
+//PUMP DURATION//
 int pumpDuration;
 int pumpDurationMs;
 
 //TEMPERATURE//                             //A0 - TEMP///
 const int temPin = A0;
-int TmpC; //WAS FLOAT DATATYPE
+int TmpC;  //WAS FLOAT DATATYPE
 //LIGHT SENSOR//                            ///A2 -LIGHT//
 const int lightPin = A2;
 int lightSensorValue = 0;
@@ -28,25 +28,25 @@ int lightSensorValue = 0;
 const int motorPin = 8;
 //TEST BUTTON WAS
 //const int testButton = 3;
-int testStatus = 0;                  //D13 - STATUS LED///
+int testStatus = 0;  //D13 - STATUS LED///
 //STATUS LED
 const int LEDpin = 13;
-const int LEDrun = 7;             //D7 - PUMP STATUS LED//
+const int LEDrun = 7;  //D7 - PUMP STATUS LED//
 const long onDuration = 5;
 const long offDuration = 4500;
 int LEDState = HIGH;
-long blinkTime = 0; //previousTime
+long blinkTime = 0;  //previousTime
 //////////////////////////////10 - FLOTTEUR FLOAT SWITCH//
-const int floatSwitch = 10; //WAS ANALOGIC 3 (10)///////
-const unsigned long safeTime = 1500;                  //
+const int floatSwitch = 10;           //WAS ANALOGIC 3 (10)///////
+const unsigned long safeTime = 1500;  //
 int floatIcon;
 //RED LED///////////////////////////////////////////////
 const int emptyLED = 6;  //D11 - WATER TANK EMPTY LED //
-int floatState = 0;                                   //
+int floatState = 0;      //
 //BEGIN ANALOGIC BUTTONS 0 1 2///A1 - 3 ANALOGIC BUTTONS//
 //Source code on https://modelleisenbahn.triskell.org/spip.php?article59/ //
 //Plusieurs boutons poussoir sur une entrée analogique  //
-const byte NON_PRESSE = 0;                              //
+const byte NON_PRESSE = 0;  //
 const byte ENFONCE = 1;
 const byte PRESSE = 2;
 //
@@ -60,14 +60,13 @@ const byte EVENEMENT_RELACHE = 2;
 const int pinPoussoirs = A1;
 //
 int numPoussoir;
-int lirePoussoirs()
-{
+int lirePoussoirs() {
   int resultat;
   int numPoussoir = (analogRead(pinPoussoirs) + 170) / 341;
 
   int nouvelEtatPoussoir = etatPoussoir;
 
-  switch (etatAutomate) {         //SWITCH EXAMPLE//////
+  switch (etatAutomate) {  //SWITCH EXAMPLE//////
     case NON_PRESSE:
       if (numPoussoir < 3)
         etatAutomate = ENFONCE;
@@ -76,8 +75,7 @@ int lirePoussoirs()
       if (numPoussoir < 3) {
         etatAutomate = PRESSE;
         nouvelEtatPoussoir = numPoussoir;
-      }
-      else {
+      } else {
         etatAutomate = NON_PRESSE;
       }
       break;
@@ -89,13 +87,12 @@ int lirePoussoirs()
       break;
   }
   return nouvelEtatPoussoir;
-}                                                     //
+}  //
 /*
    construction d'un événement en comparant
    le nouvel état des poussoirs avec l'état précédent.
 */
-byte lireEvenement(int *numPoussoir)
-{
+byte lireEvenement(int *numPoussoir) {
   byte evenement;
   int nouvelEtatPoussoir = lirePoussoirs();
 
@@ -210,16 +207,17 @@ byte fulltankIcon[] = {
 //MENU/////////////////////////////////////////MENU////////////////
 //adapted from https://myhomethings.eu/en/dynamic-arduino-lcd-menu/
 //const byte upButtonPin = ?;
-const byte upButtonPin(numPoussoir == 0);       //LEFT +          //
+const byte upButtonPin(numPoussoir == 0);  //LEFT +          //
 //const byte downButtonPin = ?;
 //const byte rightButtonPin = A1;
-const byte rightButtonPin(numPoussoir == 1);    //MIDDLE -        //
+const byte rightButtonPin(numPoussoir == 1);  //MIDDLE -        //
 //const byte leftButtonPin = ?;
-const byte leftButtonPin(numPoussoir == 2);     //RIGHT - SELECT  //
+const byte leftButtonPin(numPoussoir == 2);  //RIGHT - SELECT  //
 //
-const byte tweeterPin = 9;                      //BEEP SOUND PIN  //
+const byte tweeterPin = 9;  //BEEP SOUND PIN  //
 
-String MenuItems[] = {  // Your menu items
+String MenuItems[] = {
+  // Your menu items
   "PWS Odilus  Menu",
   "Moisture settings",
   "Pump duration",
@@ -228,34 +226,34 @@ String MenuItems[] = {  // Your menu items
 };
 //MENU////END///////////////////////
 
-void setup() {                                                      //VOID SETUP////////                  ////SETUP////
+void setup() {  //VOID SETUP////////                  ////SETUP////
 
   //////////////////////                      //PUMP DURATION & INTERVAL//
   pumpDuration = 8;
   pumpInterval = 5;
   //////////////////////INITAL VALUES///////////
 
-  Serial.begin(9600);                         //
-  pinMode(motorPin, OUTPUT);                  //RELAY PIN
-  pinMode(temPin, INPUT);                     //TEMP SENSOR
-  pinMode(LEDpin, OUTPUT);                    //STATUS LED
-  digitalWrite(LEDpin, LEDState);             //
-  pinMode(LEDrun, OUTPUT);                    //PUMP LED
+  Serial.begin(9600);              //
+  pinMode(motorPin, OUTPUT);       //RELAY PIN
+  pinMode(temPin, INPUT);          //TEMP SENSOR
+  pinMode(LEDpin, OUTPUT);         //STATUS LED
+  digitalWrite(LEDpin, LEDState);  //
+  pinMode(LEDrun, OUTPUT);         //PUMP LED
   //pinMode(testButton,INPUT); //for older versions (V4 or V5)
   ////////FLOATSWITCH SETUP////////////       //FLOATSWITCH
-  pinMode(floatSwitch, INPUT_PULLUP);         //
-  pinMode(emptyLED, OUTPUT);                  //EMPTY LED
+  pinMode(floatSwitch, INPUT_PULLUP);  //
+  pinMode(emptyLED, OUTPUT);           //EMPTY LED
   /////////////////END OF FLOATSWITCH SETUP/////
-  pinMode(upButtonPin, INPUT_PULLUP);         //NAVIGATION BUTTONS
+  pinMode(upButtonPin, INPUT_PULLUP);  //NAVIGATION BUTTONS
   //pinMode(downButtonPin, INPUT_PULLUP);     //
-  pinMode(rightButtonPin, INPUT_PULLUP);      //
-  pinMode(leftButtonPin, INPUT_PULLUP);       //
-  pinMode(pinPoussoirs, INPUT);               //PIN POUSSOIR AS AN INPUT//
-  lcd.begin(16, 2);                           //LCD BEGIN
-  lcd.clear();                                //
+  pinMode(rightButtonPin, INPUT_PULLUP);  //
+  pinMode(leftButtonPin, INPUT_PULLUP);   //
+  pinMode(pinPoussoirs, INPUT);           //PIN POUSSOIR AS AN INPUT//
+  lcd.begin(16, 2);                       //LCD BEGIN
+  lcd.clear();                            //
   //LCD BACKLIGHT///////////////////////////////LCD BACKLIGHT
-  pinMode (backLight, OUTPUT);                //
-  analogWrite(backLight, BACKLIGHT_INTENSITY);//
+  pinMode(backLight, OUTPUT);                   //
+  analogWrite(backLight, BACKLIGHT_INTENSITY);  //
   //END OF LCD BACKLIGHT////////////////////////
   //////////CUSTOMCHAR//////////////////////////
   //lcd.home();
@@ -268,12 +266,12 @@ void setup() {                                                      //VOID SETUP
   lcd.createChar(7, fulltankIcon);
   //END OF CUSTOM CHAR//                           //
   //LCD STARTUP MESSAGE
-  lcd.setCursor(0, 0);                             //
-  lcd.write(1);                                    //
-  lcd.setCursor(2, 0);                             //
-  lcd.print("PERANS SYSTEMS");                     //LCD STARTUP MESSAGE
+  lcd.setCursor(0, 0);          //
+  lcd.write(1);                 //
+  lcd.setCursor(2, 0);          //
+  lcd.print("PERANS SYSTEMS");  //LCD STARTUP MESSAGE
   lcd.setCursor(0, 1);
-  lcd.print("Watering Station");                   //LCD STARTUP MESSAGE
+  lcd.print("Watering Station");  //LCD STARTUP MESSAGE
   delay(3500);
   lcd.clear();
   lcd.setCursor(7, 0);
@@ -295,24 +293,23 @@ void setup() {                                                      //VOID SETUP
   digitalWrite(LEDpin, LOW);
   digitalWrite(LEDrun, LOW);
   digitalWrite(emptyLED, LOW);
-  beepsOnce();                                     //STARTUP BEEP
+  beepsOnce();  //STARTUP BEEP
   delay(50);
   beepsOnce();
-}                                                  //                         //END OF SETUP//
+}  //                         //END OF SETUP//
 
 //////MENU//FUNCTIONS//////////////                 //MENU FUNCTIONS//////
-void menuFunctions(int menu, byte right, byte left)     //
+void menuFunctions(int menu, byte right, byte left)  //
 {
-  static unsigned long lastUpdat = millis();//?
-  if (menu == 1) //ACCUEIL                             //MENU 1
+  static unsigned long lastUpdat = millis();  //?
+  if (menu == 1)                              //ACCUEIL                             //MENU 1
   {
     lcd.setCursor(0, 1);
     lcd.print("LIST  UPDATE");
     lcd.setCursor(15, 1);
     lcd.write(5);
 
-    if (right == 1)
-    {
+    if (right == 1) {
       beepsOnce();
       lcd.clear();
       lcd.setCursor(0, 0);
@@ -358,7 +355,7 @@ void menuFunctions(int menu, byte right, byte left)     //
         lcd.setCursor(2, 1);
         lcd.write(2);
         lcd.setCursor(3, 1);
-        lcd.print(soilMoisture);//remplacer par l'humidité relevée
+        lcd.print(soilMoisture);  //remplacer par l'humidité relevée
         lcd.setCursor(5, 1);
         lcd.print("%");
         lcd.setCursor(9, 1);
@@ -369,8 +366,7 @@ void menuFunctions(int menu, byte right, byte left)     //
         lcd.print("deg");
       }
     }
-    if (left == 1)
-    {
+    if (left == 1) {
       beepsOnce();
       lcd.clear();
       lcd.setCursor(0, 0);
@@ -408,7 +404,7 @@ void menuFunctions(int menu, byte right, byte left)     //
         lcd.setCursor(2, 1);
         lcd.write(2);
         lcd.setCursor(3, 1);
-        lcd.print(soilMoisture);//remplacer par l'humidité relevée
+        lcd.print(soilMoisture);  //remplacer par l'humidité relevée
         lcd.setCursor(5, 1);
         lcd.print("%");
         lcd.setCursor(9, 1);
@@ -420,21 +416,17 @@ void menuFunctions(int menu, byte right, byte left)     //
       }
     }
   }
-  if (menu == 2) // Moisture settings                         //MENU 2
+  if (menu == 2)  // Moisture settings                         //MENU 2
   {
-    if (right == 1)
-    {
+    if (right == 1) {
       moistSet += 5;
-      if (moistSet >= 100)
-      {
+      if (moistSet >= 100) {
         moistSet = 100;
       }
     }
-    if (left == 1)
-    {
+    if (left == 1) {
       moistSet -= 5;
-      if (moistSet <= 25)
-      {
+      if (moistSet <= 25) {
         moistSet = 25;
       }
     }
@@ -447,22 +439,17 @@ void menuFunctions(int menu, byte right, byte left)     //
     lcd.print("%");
     //analogWrite(ledPin_fade, moistVal);
   }
-  if (menu == 3) // PUMP DURATION                             //MENU 3
+  if (menu == 3)  // PUMP DURATION                             //MENU 3
   {
-    if (right == 1)
-    {
+    if (right == 1) {
       pumpDuration += 1;
-      if (pumpDuration >= 60
-         )
-      {
+      if (pumpDuration >= 60) {
         pumpDuration = 60;
       }
     }
-    if (left == 1)
-    {
+    if (left == 1) {
       pumpDuration -= 1;
-      if (pumpDuration <= 1)
-      {
+      if (pumpDuration <= 1) {
         pumpDuration = 1;
       }
     }
@@ -474,21 +461,17 @@ void menuFunctions(int menu, byte right, byte left)     //
     lcd.print(pumpDuration);
     lcd.print("sec");
   }
-  if (menu == 4) // PUMP INTERVAL                             //MENU 4
+  if (menu == 4)  // PUMP INTERVAL                             //MENU 4
   {
-    if (right == 1)
-    {
+    if (right == 1) {
       pumpInterval += 1;
-      if (pumpInterval >= 120)
-      {
+      if (pumpInterval >= 120) {
         pumpInterval = 120;
       }
     }
-    if (left == 1)
-    {
+    if (left == 1) {
       pumpInterval -= 1;
-      if (pumpInterval <= 1)
-      {
+      if (pumpInterval <= 1) {
         pumpInterval = 1;
       }
     }
@@ -500,12 +483,11 @@ void menuFunctions(int menu, byte right, byte left)     //
     lcd.print(pumpInterval);
     lcd.print("min");
   }
-  if (menu == 5) // PUMP TEST                               //MENU 5
+  if (menu == 5)  // PUMP TEST                               //MENU 5
   {
     lcd.setCursor(0, 1);
     lcd.print("<RUN  STOP MENU>");
-    if (right == 1)
-    {
+    if (right == 1) {
       lcd.setCursor(0, 1);
       lcd.write(4);
       lcd.setCursor(1, 1);
@@ -521,8 +503,7 @@ void menuFunctions(int menu, byte right, byte left)     //
       beepsOnce();
       //digitalWrite(ledPin, HIGH);//REMPLACER PAR ACTIVER LE RELAIS
     }
-    if (left == 1)
-    {
+    if (left == 1) {
       lcd.setCursor(0, 1);
       lcd.print("<RUN  STOP MENU>");
       digitalWrite(motorPin, LOW);
@@ -534,7 +515,7 @@ void menuFunctions(int menu, byte right, byte left)     //
 ////MENU & BUZZER AUTOMATION////
 /***  do not modify  ***********************************************/
 template< typename T, size_t NumberOfSize >
-size_t MenuItemsSize(T (&) [NumberOfSize]) {
+size_t MenuItemsSize(T (&)[NumberOfSize]) {
   return NumberOfSize;
 }
 int numberOfMenuItems = MenuItemsSize(MenuItems) - 1;
@@ -543,7 +524,7 @@ int previousMenuItem = 1;
 byte button_flag = 0;
 unsigned long previousMillis = millis();
 const int note = 4699;
-void beepsOnce()                  //BEEP SETTINGS
+void beepsOnce()  //BEEP SETTINGS
 {
   tone(tweeterPin, note, 125);
   delay(60);
@@ -551,7 +532,7 @@ void beepsOnce()                  //BEEP SETTINGS
 }
 /*************END******OF*MENU*****FONCTIONS************************/
 /////////////////////////////////////////////////////////////////////
-void loop() {                                         //////L O O P//                                                     ///VOID LOOP//
+void loop() {  //////L O O P//                                                     ///VOID LOOP//
 
   //PUMP DURATION & INTERVAL//VALUES UPDATE//
   pumpDurationMs = pumpDuration * 1000;
@@ -567,14 +548,13 @@ void loop() {                                         //////L O O P//           
   //Serial.println(poussVal); //lecture du Pin bouton poussoir
   //delay(50);
   //
-  if (millis() - lastMillis >= onTime)
-  {
+  if (millis() - lastMillis >= onTime) {
     analogWrite(backLight, 0);
   }
   if (poussVal <= 1000) {
     lastMillis = millis();
     analogWrite(backLight, BACKLIGHT_INTENSITY);
-  }                                                                 //
+  }  //
   /////////////////////END OF LCD SCREENSAVER///////////////////////////
   //BEGIN LOOP ANALOGIC BUTTONS 0 1 2 setup ///////ANALOGIG BUTTONS///
 
@@ -595,28 +575,24 @@ void loop() {                                         //////L O O P//           
   ///////////////////////////END LOOP ANALOGIC BUTTONS 0 1 2 setup ////
   ////////////////////////MENU//////////AUTOMATION/////////////////////
   //if(digitalRead(rightButtonPin) == LOW && button_flag == 0)
-  if (numPoussoir == 0 && button_flag == 0)
-  {
+  if (numPoussoir == 0 && button_flag == 0) {
     menuFunctions(currentMenuItem + 1, 1, 0);
     button_flag = 1;
     previousMillis = millis();
     beepsOnce();
   }
   //if(digitalRead(leftButtonPin) == LOW && button_flag == 0)
-  if (numPoussoir == 1 && button_flag == 0)
-  {
+  if (numPoussoir == 1 && button_flag == 0) {
     menuFunctions(currentMenuItem + 1, 0, 1);
     button_flag = 1;
     previousMillis = millis();
     beepsOnce();
   }
   //if(digitalRead(upButtonPin) == LOW && button_flag == 0)
-  if (numPoussoir == 2 && button_flag == 0)
-  {
+  if (numPoussoir == 2 && button_flag == 0) {
     ++currentMenuItem;
-    if (currentMenuItem > numberOfMenuItems )
-    {
-      currentMenuItem = 0 ; //WAS numberOfMenuItems
+    if (currentMenuItem > numberOfMenuItems) {
+      currentMenuItem = 0;  //WAS numberOfMenuItems
     }
     button_flag = 1;
     previousMillis = millis();
@@ -633,65 +609,61 @@ void loop() {                                         //////L O O P//           
       previousMillis = millis();
       beepsOnce();}
   */
-  if (currentMenuItem != previousMenuItem)
-  {
+  if (currentMenuItem != previousMenuItem) {
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print(MenuItems [currentMenuItem]);
+    lcd.print(MenuItems[currentMenuItem]);
     menuFunctions(currentMenuItem + 1, 0, 0);
     previousMenuItem = currentMenuItem;
   }
-  if (millis() - previousMillis >= 400)
-  {
+  if (millis() - previousMillis >= 400) {
     previousMillis = millis();
     button_flag = 0;
   }
   //END OF MENU//////////AUTOMATION//////////////////////////////////
   ///////////////////////////////////////////////////////////////////
   ////LED BLINKING////////////////////////////STATUS LED BLINKING////
-  if ( LEDState == HIGH )
-  {
-    if ( (millis() - blinkTime) >= onDuration) {
-      LEDState = LOW;// change the state of LED
-      blinkTime = millis(); // remember Current millis() time
+  if (LEDState == HIGH) {
+    if ((millis() - blinkTime) >= onDuration) {
+      LEDState = LOW;        // change the state of LED
+      blinkTime = millis();  // remember Current millis() time
     }
-  }
-  else
-  {
-    if ( (millis() - blinkTime) >= offDuration) {
-      LEDState = HIGH; // change the state of LED
-      blinkTime = millis(); // remember Current millis() time
+  } else {
+    if ((millis() - blinkTime) >= offDuration) {
+      LEDState = HIGH;       // change the state of LED
+      blinkTime = millis();  // remember Current millis() time
     }
   }
   digitalWrite(LEDpin, LEDState);
   ////END OF LED BLINKING////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////
   //SENSORS SERIAL DISPLAY//////////////////////////SERIAL DISPLAY///
-  soilRawValue = analogRead(PinMoisture); /////////MOISTURE DISPLAY//
+  soilRawValue = analogRead(PinMoisture);  /////////MOISTURE DISPLAY//
   Serial.print("moist: ");
   //Serial.print(soilRawValue);
   soilMoisture = map(soilRawValue, Dry, Wet, 0, 100);
   if (soilMoisture <= 0) {
-    soilMoisture = 0;}
+    soilMoisture = 0;
+  }
   Serial.print(" moist: ");
   Serial.print(soilMoisture);
   Serial.print(" % \t");
-  lightSensorValue = analogRead(lightPin); //LUMINOSITY DISPLAY
+  lightSensorValue = analogRead(lightPin);  //LUMINOSITY DISPLAY
   Serial.print("  Light.: ");
   Serial.print(lightSensorValue);
   Serial.print("\t");
   delay(5);
-  int TmpVal = analogRead(temPin); //TEMPERATURE DISPLAY
+  int TmpVal = analogRead(temPin);  //TEMPERATURE DISPLAY
   Serial.print("Temp: ");
   //Serial.print(TmpVal);
   float TmpVolt = (TmpVal / 1024.0) * 5.0;
   //Serial.print(", Volts : ");
   //Serial.print(TmpVolt);
   Serial.print(" deg ");
-  TmpC = (TmpVolt - .5) * 100;//WAS FLOAT DATA
+  TmpC = (TmpVolt - .5) * 100;  //WAS FLOAT DATA
   Serial.print(TmpC);
   Serial.print(" C \t");
-  delay(15); //LINE DISPLAY RATE --END OF VALUES DISPLAY--//
+  delay(15);  //LINE DISPLAY RATE --END OF VALUES DISPLAY--//
   //END OF SENSORS DISPLAY//
 
   //SETTINGS DISPLAY//
@@ -711,14 +683,14 @@ void loop() {                                         //////L O O P//           
   //Serial.print("Val float: ");
   //Serial.println(floatState);
   static unsigned long floatTime = millis();
-  if (floatState >= 1) {          //IF WATER TANK EMPTY
+  if (floatState >= 1) {  //IF WATER TANK EMPTY
     floatTime = millis();
     //Serial.println(" NO WATER");
     digitalWrite(emptyLED, HIGH);
     floatIcon = 0;
   }
-  if (millis() - floatTime >= safeTime) {   /*loop to avoid noise in float switch readings*/
-    if (floatState <= 0) {        //IF WATER TANK FILLED//SENSORS CONDITIONS TO LAUNCH PUMP//
+  if (millis() - floatTime >= safeTime) { /*loop to avoid noise in float switch readings*/
+    if (floatState <= 0) {                //IF WATER TANK FILLED//SENSORS CONDITIONS TO LAUNCH PUMP//
       //Serial.println("WATER TANK OK");
       digitalWrite(emptyLED, LOW);
       floatIcon = 1;
@@ -727,67 +699,61 @@ void loop() {                                         //////L O O P//           
 
     //TIME GAP -- CALCUL DE L'INTERVALE DE TEMPS//INTERVAL LOOP -   BEGIN OF WATERING FUNCTIONS//
     unsigned long currentTime = millis();
-    if (currentTime - previousTime >= pumpIntervalMs && floatIcon == 1) {   //TIME BETWNEEN WATERINGS
-      previousTime = currentTime; //END OF TIME GAP
+    if (currentTime - previousTime >= pumpIntervalMs && floatIcon == 1) {  //TIME BETWNEEN WATERINGS
+      previousTime = currentTime;                                          //END OF TIME GAP
 
       //COLD WEATHER
-      if (soilMoisture < moistSet && TmpC > 2 && TmpC < 7  && lightSensorValue > 25)
-      {
+      if (soilMoisture < moistSet && TmpC > 2 && TmpC < 7 && lightSensorValue > 25) {
         //temperature between 2&10 degree C, enough light to avoid freezing -->GO
         digitalWrite(motorPin, HIGH);
         digitalWrite(LEDrun, HIGH);
         Serial.println("PUMP RUNNING COLD WEATHER SETTING");
-        delay(pumpDurationMs); //TEMPS FONCTIONNEMENT POMPE - TIME THE PUMP WILL RUN
+        delay(pumpDurationMs);  //TEMPS FONCTIONNEMENT POMPE - TIME THE PUMP WILL RUN
         digitalWrite(motorPin, LOW);
         Serial.println("PUMP STOPPING, PAUSE...");
-        delay(1000); //PAUSE TIME SETUP
+        delay(1000);  //PAUSE TIME SETUP
         Serial.println("CHECKING ...");
         digitalWrite(LEDrun, LOW);
         delay(500);
-      }
-      else {
+      } else {
         digitalWrite(motorPin, LOW);
-      }// END OF COLD WEATHER
+      }  // END OF COLD WEATHER
 
       //REGULAR WEATHER
-      if (soilMoisture < moistSet && TmpC > 7 && TmpC < 29)
-      {
+      if (soilMoisture < moistSet && TmpC > 7 && TmpC < 29) {
         //temperature between 10&27 degree C, no matter the daytime or night time -->GO
         digitalWrite(motorPin, HIGH);
         digitalWrite(LEDrun, HIGH);
         Serial.println("PUMP RUNNING REGULAR WEATHER SETTING");
-        delay(pumpDurationMs); //TEMPS FONCTIONNEMENT POMPE - TIME THE PUMP WILL RUN
+        delay(pumpDurationMs);  //TEMPS FONCTIONNEMENT POMPE - TIME THE PUMP WILL RUN
         digitalWrite(motorPin, LOW);
         Serial.println("PUMP STOPPING, PAUSE...");
-        delay(1000); //PAUSE TIME SETUP
+        delay(1000);  //PAUSE TIME SETUP
         Serial.println("CHECKING ...");
         digitalWrite(LEDrun, LOW);
         delay(500);
-      }
-      else {
+      } else {
         digitalWrite(motorPin, LOW);
-      }// END OF REGULAR WEATHER
+      }  // END OF REGULAR WEATHER
 
       //HOT WEATHER
-      if (soilMoisture < moistSet && TmpC > 29 && lightSensorValue < 300)
-      {
+      if (soilMoisture < moistSet && TmpC > 29 && lightSensorValue < 300) {
         //temperature hotter than 27 degree C, during night time -->GO
         digitalWrite(motorPin, HIGH);
         digitalWrite(LEDrun, HIGH);
         Serial.println("PUMP RUNNING HOT WEATHER SETTING");
-        delay(pumpDurationMs); //TEMPS FONCTIONNEMENT POMPE - TIME THE PUMP WILL RUN
+        delay(pumpDurationMs);  //TEMPS FONCTIONNEMENT POMPE - TIME THE PUMP WILL RUN
         digitalWrite(motorPin, LOW);
         Serial.println("PUMP STOPPING, PAUSE...");
-        delay(1000); //PAUSE TIME SETUP
+        delay(1000);  //PAUSE TIME SETUP
         Serial.println("CHECKING ...");
         digitalWrite(LEDrun, LOW);
         delay(500);
-      }
-      else {
+      } else {
         digitalWrite(motorPin, LOW);
-      }// END OF HOT WEATHER
+      }  // END OF HOT WEATHER
 
       delay(10);
-    }//FIN FONCTION INTERVAL (MILLIS UNSIGNED LONG) ///////////////
-  }////FIN FONCTION WATER TANK SWITCH//////////////////////////////
-}//END OF LOOP////////////////////////////////////////////////2021/
+    }  //FIN FONCTION INTERVAL (MILLIS UNSIGNED LONG) ///////////////
+  }    ////FIN FONCTION WATER TANK SWITCH//////////////////////////////
+}  //END OF LOOP////////////////////////////////////////////////2021/
