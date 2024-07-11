@@ -8,42 +8,66 @@
 const int LED = 6;
 const int motionSensor = 2;
 const int relayPin = 8;
+const int lightPin = A0;         // Broche du capteur de luminosité
+const int lightThreshold = 200;  // Seuil de luminosité pour le jour (à ajuster selon vos besoins)
 int relayStatus = 0;
 ///////////////////////////////////////////TIMER SETTINGS//
 unsigned long lastMillis = 0;
-const unsigned long onTime = 50000;
+const unsigned long onTime = 5000;
 /////////////////////////////////////////TIMER SETTINGS////
 ////////////////////////////////////////////////////SETUP//
 void setup() {
   pinMode(motionSensor, INPUT);
+  pinMode(lightPin, INPUT);
   pinMode(LED, OUTPUT);
   pinMode(relayPin, OUTPUT);
-  const int lightPin = A2;
-  int lightSensorValue = 0;
   Serial.begin(9600);
 }
 //////////////////////////////////////////////////////LOOP//
 void loop() {
 
   int motionDetected = digitalRead(motionSensor);
-
-  Serial.print(" ////// MORE ON PERAN.DEV ////// ");
-  Serial.print(" SENSOR (1=on, 0=off): ");
-  Serial.print(motionDetected);
-  Serial.print("   RELAY STATUS: ");
-  Serial.print(relayStatus);
-  Serial.println("    ////// ");
+  int lightSensorValue = analogRead(lightPin);
+  unsigned long currentMillis = millis();
 
   if (motionDetected == HIGH) {
-    // Motion detected, turn on LED and relay
+    // Motion detected, turn on LED
     digitalWrite(LED, HIGH);
-    digitalWrite(relayPin, HIGH);
-    relayStatus = 1;
-    lastMillis = millis();  // Reset the timer
-  } else if (millis() - lastMillis > onTime) {
+
+    // Check light sensor to decide whether to turn on the relay
+    if (lightSensorValue < lightThreshold) {
+      digitalWrite(relayPin, HIGH);
+      relayStatus = 1;
+    } else {
+      digitalWrite(relayPin, LOW);
+      relayStatus = 0;
+    }
+
+    lastMillis = currentMillis;  // Reset the timer
+  } else if (currentMillis - lastMillis > onTime) {
     // No motion detected for onTime duration, turn off LED and relay
     digitalWrite(LED, LOW);
     digitalWrite(relayPin, LOW);
+    relayStatus = 0;
   }
+
+  // Calculate the remaining time in seconds
+  unsigned long timeRemaining;
+  if (relayStatus == 1) {
+    timeRemaining = (onTime - (currentMillis - lastMillis)) / 1000;
+  } else {
+    timeRemaining = 0;
+  }
+
+  Serial.print(" ////// MORE ON PERAN.DEV ////// ");
+  Serial.print(" MOTION SENSOR (1=on, 0=off): ");
+  Serial.print(motionDetected);
+  Serial.print(" LIGHT SENSOR: ");
+  Serial.print(lightSensorValue);
+  Serial.print(" RELAY: ");
+  Serial.print(relayStatus);
+  Serial.print("   TIMER : ");
+  Serial.print(timeRemaining);
+  Serial.println(" seconds //// ");
   /////////////////////////////////////////////////END OF LOOP//
 }
