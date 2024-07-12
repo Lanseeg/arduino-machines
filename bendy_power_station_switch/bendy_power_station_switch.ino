@@ -1,4 +1,7 @@
 //////////PERANS SYSTEMS - BENDY POWER STATION/////////////
+//Cette approche utilise une machine à états pour gérer ///
+//les différentes conditions du système de manière plus ///
+//organisée et claire. USE OF SWITCH / CASE             ///
 ////PROJECT TO BRING LIGHT AND USB CHARGING IN A CAMPING///
 ////SHED. MOTION SENSOR, LIGHT SENSOR, 12V RELAY & LIGHT///
 ////POWERED BY A BATTERY CHARGED BY A SOLAR PANNEL.     ///
@@ -9,65 +12,79 @@ const int LED = 6;
 const int motionSensor = 2;
 const int relayPin = 8;
 const int lightPin = A0;         // Broche du capteur de luminosité
-const int lightThreshold = 200;  // Seuil de luminosité pour le jour (à ajuster selon vos besoins)
-int relayStatus = 0;
-///////////////////////////////////////////TIMER SETTINGS//
+const int lightThreshold = 300;  // Seuil de luminosité pour le jour (à ajuster selon vos besoins)
+
+const unsigned long onTime = 5000;  // Durée en millisecondes (50 secondes)
+
 unsigned long lastMillis = 0;
-const unsigned long onTime = 5000;
-/////////////////////////////////////////TIMER SETTINGS////
-////////////////////////////////////////////////////SETUP//
+enum State { IDLE,
+             ACTIVE,
+             COUNTDOWN };
+State currentState = IDLE;
+
 void setup() {
   pinMode(motionSensor, INPUT);
-  pinMode(lightPin, INPUT);
   pinMode(LED, OUTPUT);
   pinMode(relayPin, OUTPUT);
+  pinMode(lightPin, INPUT);
   Serial.begin(9600);
 }
-//////////////////////////////////////////////////////LOOP//
-void loop() {
 
+void loop() {
   int motionDetected = digitalRead(motionSensor);
   int lightSensorValue = analogRead(lightPin);
   unsigned long currentMillis = millis();
+  unsigned long timeRemaining = 0;
 
-  if (motionDetected == HIGH) {
-    // Motion detected, turn on LED
-    digitalWrite(LED, HIGH);
+  switch (currentState) {
+    case IDLE:
+      if (motionDetected == HIGH) {
+        digitalWrite(LED, HIGH);  // Turn on LED when motion is detected
+        if (lightSensorValue < lightThreshold) {
+          digitalWrite(relayPin, HIGH);
+        }
+        lastMillis = currentMillis;
+        currentState = ACTIVE;
+      } else {
+        digitalWrite(LED, LOW);  // Ensure LED is off when no motion is detected
+      }
+      break;
 
-    // Check light sensor to decide whether to turn on the relay
-    if (lightSensorValue < lightThreshold) {
-      digitalWrite(relayPin, HIGH);
-      relayStatus = 1;
-    } else {
-      digitalWrite(relayPin, LOW);
-      relayStatus = 0;
-    }
+    case ACTIVE:
+      if (motionDetected == HIGH) {
+        lastMillis = currentMillis;  // Reset the timer if motion is detected
+        digitalWrite(LED, HIGH);     // Keep LED on while motion is detected
+      } else {
+        digitalWrite(LED, LOW);  // Turn off LED if no motion
+      }
 
-    lastMillis = currentMillis;  // Reset the timer
-  } else if (currentMillis - lastMillis > onTime) {
-    // No motion detected for onTime duration, turn off LED and relay
-    digitalWrite(LED, LOW);
-    digitalWrite(relayPin, LOW);
-    relayStatus = 0;
+      if (currentMillis - lastMillis > onTime) {
+        digitalWrite(relayPin, LOW);  // Turn off relay after onTime
+        currentState = IDLE;
+      } else {
+        if (lightSensorValue < lightThreshold) {
+          digitalWrite(relayPin, HIGH);
+        } else {
+          digitalWrite(relayPin, LOW);
+        }
+        currentState = COUNTDOWN;
+      }
+      break;
+
+    case COUNTDOWN:
+      timeRemaining = (onTime - (currentMillis - lastMillis)) / 1000;
+      currentState = ACTIVE;
+      break;
   }
 
-  // Calculate the remaining time in seconds
-  unsigned long timeRemaining;
-  if (relayStatus == 1) {
-    timeRemaining = (onTime - (currentMillis - lastMillis)) / 1000;
-  } else {
-    timeRemaining = 0;
-  }
-
-  Serial.print(" ////// MORE ON PERAN.DEV ////// ");
-  Serial.print(" MOTION SENSOR (1=on, 0=off): ");
+  // Refresh Serial Monitor continuously
+  Serial.print("Motion Detected: ");
   Serial.print(motionDetected);
-  Serial.print(" LIGHT SENSOR: ");
+  Serial.print(", Light Sensor Value: ");
   Serial.print(lightSensorValue);
-  Serial.print(" RELAY: ");
-  Serial.print(relayStatus);
-  Serial.print("   TIMER : ");
+  Serial.print(", Relay Status: ");
+  Serial.print(digitalRead(relayPin));
+  Serial.print(", Time Remaining: ");
   Serial.print(timeRemaining);
-  Serial.println(" seconds //// ");
-  /////////////////////////////////////////////////END OF LOOP//
+  Serial.println(" seconds");
 }
